@@ -3,8 +3,10 @@ import os
 import asyncio
 import tkinter as tk
 from tkinter import Tk, filedialog
+from tkinter import messagebox
 from FileHelper import FileHelper
 
+user_select_path = ""
 temp_notepad_path = os.path.join(os.path.dirname(__file__), "renameTEMP","temp_file_rename_yg.txt")
 
 file_list = []
@@ -17,6 +19,7 @@ def select_directory():
     directory = filedialog.askdirectory()
     dir_fullpath_entry.delete(0, tk.END)
     dir_fullpath_entry.insert(0, directory)
+    user_select_path = directory
 
 async def load_files():
     global file_list
@@ -44,6 +47,7 @@ async def load_files():
 async def read_notepad():
     global file_list_renamed
     global dir_list_renamed
+    global temp_notepad_path
     file_list_renamed = []
     dir_list_renamed = []
     start_dir = False
@@ -60,8 +64,28 @@ async def read_notepad():
                 file_list_renamed.append(line)
             # 把重新命名后的字符数组加入到 renamed_listbox 里
             file_dir_renamed_listbox.insert(tk.END, line)
-    
-            
+
+async def rename_file_dir():
+    global user_select_path
+    global file_list
+    global dir_list
+    global file_list_renamed
+    global dir_list_renamed
+    if (len(file_list) != len(file_list_renamed)) or (len(dir_list)!= len(dir_list_renamed)):
+        # raise ValueError("renamed file or dir is not equal to the original file or dir")
+        messagebox.showerror("Error", "renamed file or dir is not equal to the original file or dir")
+        return
+    # rename files one by one
+    for i in range(len(file_list)):
+        old_full_path=os.path.join(user_select_path,file_list[i])
+        new_full_path=os.path.join(user_select_path,file_list_renamed[i])
+        os.rename(old_full_path,new_full_path)
+    # rename dirs one by one
+    for i in range(len(dir_list)):
+        old_full_path=os.path.join(user_select_path,dir_list[i])
+        new_full_path=os.path.join(user_select_path,dir_list_renamed[i])
+        os.rename(old_full_path,new_full_path)
+
 
 
 
@@ -87,24 +111,26 @@ def set_grid_config(root:Tk,row_column:tuple,row_column_weight:tuple):
 
 app_root = tk.Tk()
 app_root.title("Directory Reader")
-app_root = set_grid_config(app_root,(3,5),([1,1,1],[1,1,1,1]))
+app_root = set_grid_config(app_root,(3,5),([1,1,1],[1,2,2,1,1]))
 
 
 # create views
 frame_root = tk.Frame(app_root)
 dir_fullpath_entry = tk.Entry(frame_root, width=50)
 dir_picker_button = tk.Button(frame_root, text="Select Directory", command=select_directory)
-load_button = tk.Button(frame_root, text="Rename by NotePad", command=load_files)
-diff_button = tk.Button(frame_root, text="Diff after saving notepad.", command=read_notepad)
+load_button = tk.Button(frame_root, text="Modify name by NotePad", command=load_files)
+diff_button = tk.Button(frame_root, text="Diff after saving notepad", command=read_notepad)
+rename_button = tk.Button(frame_root, text="Rename", command=rename_file_dir)
 scrollbar = tk.Scrollbar(app_root)
-file_dir_listbox = tk.Listbox(app_root, width=50, height=10,yscrollcommand=True)
-file_dir_renamed_listbox = tk.Listbox(app_root, width=50, height=10,yscrollcommand=True)
+file_dir_listbox = tk.Listbox(app_root, width=50, height=10)
+file_dir_renamed_listbox = tk.Listbox(app_root, width=50, height=10)
 
 # initialize views
-frame_root.grid(row=0, column=0, padx=10, pady=10)
+frame_root.grid(row=0, column=0, padx=10, pady=10,sticky='we')
 dir_picker_button.grid(row=0, column=0)
 dir_fullpath_entry.grid(row=0, column=1,columnspan=2)
-load_button.grid(row=0, column=2) 
+load_button.grid(row=0, column=3) 
+rename_button.grid(row=0, column=4) 
 # 一个用于 file_dir_listbox 的 scrollbar
 scrollbar.grid(row=1, column=3, sticky='ns')
 scrollbar.config(command=file_dir_listbox.yview)
@@ -114,6 +140,7 @@ file_dir_renamed_listbox.grid(row=1, column=3, columnspan=2, padx=10, pady=10)
 file_dir_listbox.config(yscrollcommand=scrollbar.set)
 file_dir_renamed_listbox.config(yscrollcommand=scrollbar.set)
 file_dir_listbox.bind('<<ListboxSelect>>', lambda e: print(file_dir_listbox.curselection()))
+file_dir_renamed_listbox.bind('<<ListboxSelect>>', lambda e: print(file_dir_listbox.curselection()))
 
 
 # Start the GUI
