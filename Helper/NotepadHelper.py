@@ -1,6 +1,7 @@
 import subprocess
 import os
 import time
+import platform
 
 import psutil
 
@@ -11,29 +12,35 @@ class DataIOHelper:
         if not os.path.exists(filepath):
             folder_path = os.path.dirname(filepath)
             os.makedirs(folder_path, exist_ok=True)
-            with open(filepath, "w"):
+            with open(filepath, "w",encoding="utf-8"):
                 pass
 
     @staticmethod
     def write_content(filepath, content):
-        with open(filepath, "w") as f:
+        with open(filepath, "w",encoding="utf-8") as f:
             f.write(content)
 
     @staticmethod
     def read_content(filepath):
-        with open(filepath, "r") as f:
+        with open(filepath, "r",encoding="utf-8") as f:
             return f.read()
 
 
 class NotepadHelper:
     def __init__(self, filepath):
+        self.win_version = platform.win32_ver()
+        print("Windows 版本：", self.win_version)
         DataIOHelper.create_file_if_not_exists(filepath)
         self.notepad_path = filepath
         self.process = None
 
     def open(self):
         DataIOHelper.create_file_if_not_exists(self.notepad_path)
-        self.process = subprocess.Popen(["notepad.exe", self.notepad_path])
+        version = self.win_version[0]
+        if int(version) <= 10:
+            self.process = subprocess.Popen(["notepad.exe", self.notepad_path])
+        else:
+            self.process = subprocess.Popen(["Notepad.exe", self.notepad_path])
 
     def read_content(self):
         return DataIOHelper.read_content(self.notepad_path)
@@ -100,3 +107,5 @@ class NotepadHelper:
 
 # # 保存并关闭记事本
 # notepad_helper.close()
+win_version,win_version_full,_,_ = platform.win32_ver()
+print("Windows 版本：", win_version)

@@ -249,7 +249,7 @@ class RenameThemApp:
         file_list_renamed = []
         dir_list_renamed = []
         start_dir = False
-        with open(temp_notepad_path, "r") as f:
+        with open(temp_notepad_path, "r",encoding="utf-8") as f:
             lines = f.readlines()
             for line in lines:
                 line = line.strip()
@@ -274,17 +274,20 @@ class RenameThemApp:
             # raise ValueError("renamed file or dir is not equal to the original file or dir")
             messagebox.showerror("Error", "renamed file or dir is not equal to the original file or dir")
             return
-        # rename files one by one
-        for i in range(len(file_list)):
-            old_full_path = os.path.join(user_select_path, file_list[i])
-            new_full_path = os.path.join(user_select_path, file_list_renamed[i])
-            await asyncio.to_thread(os.rename, old_full_path, new_full_path)
-        # rename dirs one by one
-        for i in range(len(dir_list)):
-            old_full_path = os.path.join(user_select_path, dir_list[i])
-            new_full_path = os.path.join(user_select_path, dir_list_renamed[i])
-            await asyncio.to_thread(os.rename, old_full_path, new_full_path)
-        messagebox.showinfo("Success", "Rename Success")
+        try:
+            # rename files one by one
+            for i in range(len(file_list)):
+                old_full_path = os.path.join(user_select_path, file_list[i])
+                new_full_path = os.path.join(user_select_path, file_list_renamed[i])
+                await asyncio.to_thread(os.rename, old_full_path, new_full_path)
+            # rename dirs one by one
+            for i in range(len(dir_list)):
+                old_full_path = os.path.join(user_select_path, dir_list[i])
+                new_full_path = os.path.join(user_select_path, dir_list_renamed[i])
+                await asyncio.to_thread(os.rename, old_full_path, new_full_path)
+            messagebox.showinfo("Success", "Rename Success.")
+        except Exception as e:
+            messagebox.showerror("Error", "Rename Failed, no file(s) renamed.\nError message:{0}".format(e))
 
     def __del__(self):
         self.loop.close()
