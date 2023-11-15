@@ -35,13 +35,6 @@ dir_list_renamed = []
 #     for i in range(column_count):
 #         root.grid_columnconfigure(i, weight=column_weights[i])
 #     return root
-def run_async(coro):
-    loop = asyncio.get_event_loop()
-    try:
-        loop.run_until_complete(coro)
-    finally:
-        loop.close()
-
 
 class RenameThemApp:
     def __init__(self, root):
@@ -178,13 +171,14 @@ class RenameThemApp:
 
     def select_directory(self):
         global user_select_path
-        self.dir_fullpath_entry.configure(state=tk.NORMAL)
-        directory = filedialog.askdirectory()
-        self.dir_fullpath_entry.delete(0, tk.END)
-        self.dir_fullpath_entry.insert(0, directory)
-        user_select_path = directory
-        self.dir_fullpath_entry.configure(state="readonly")
-        self.run_async(self.load_file_dir_in_listbox_async())
+        directory = filedialog.askdirectory(initialdir=".")
+        if directory != "":
+            self.dir_fullpath_entry.configure(state=tk.NORMAL)
+            self.dir_fullpath_entry.delete(0, tk.END)
+            self.dir_fullpath_entry.insert(0, directory)
+            user_select_path = directory
+            self.dir_fullpath_entry.configure(state="readonly")
+            self.run_async(self.load_file_dir_in_listbox_async())
 
     def write_open_notepad(self):
         self.run_async(self.write_open_notepad_async())
@@ -201,6 +195,7 @@ class RenameThemApp:
             loop.run_until_complete(coro)
         except Exception as e:
             print(e)
+    
 
     async def load_file_dir_in_listbox_async(self):
         global file_list
@@ -279,12 +274,14 @@ class RenameThemApp:
             for i in range(len(file_list)):
                 old_full_path = os.path.join(user_select_path, file_list[i])
                 new_full_path = os.path.join(user_select_path, file_list_renamed[i])
-                await asyncio.to_thread(os.rename, old_full_path, new_full_path)
+                if old_full_path != new_full_path:
+                    await asyncio.to_thread(os.rename, old_full_path, new_full_path)
             # rename dirs one by one
             for i in range(len(dir_list)):
                 old_full_path = os.path.join(user_select_path, dir_list[i])
                 new_full_path = os.path.join(user_select_path, dir_list_renamed[i])
-                await asyncio.to_thread(os.rename, old_full_path, new_full_path)
+                if old_full_path != new_full_path:
+                    await asyncio.to_thread(os.rename, old_full_path, new_full_path)
             messagebox.showinfo("Success", "Rename Success.")
         except Exception as e:
             messagebox.showerror("Error", "Rename Failed, no file(s) renamed.\nError message:{0}".format(e))

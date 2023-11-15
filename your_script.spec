@@ -5,7 +5,7 @@ block_cipher = None
 
 
 a = Analysis(
-    ['RenameThemUI.py'],
+    ['your_script.py'],
     pathex=[],
     binaries=[],
     datas=[],
@@ -26,7 +26,7 @@ exe = EXE(
     a.scripts,
     [],
     exclude_binaries=True,
-    name='RenameThemUI',
+    name='your_script',
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
@@ -46,5 +46,5 @@ coll = COLLECT(
     strip=False,
     upx=True,
     upx_exclude=[],
-    name='RenameThemUI',
+    name='your_script',
 )
